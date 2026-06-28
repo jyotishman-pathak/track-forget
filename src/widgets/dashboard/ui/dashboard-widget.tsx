@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Plus, Activity, Layers, Clock, Flame, CalendarDays } from 'lucide-react';
+import { Plus, Activity, Layers, Clock, Flame, CalendarDays, LogOut } from 'lucide-react';
 import { TrackCard } from './track-card';
 import { ImportTrackDrawer } from '@/src/features/import-track';
 import { fetchTracks } from '@/src/entities/track';
@@ -18,6 +19,13 @@ export function DashboardWidget() {
   const [loading, setLoading] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const router = useRouter();
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
+  }
 
   const loadTracks = useCallback(async () => {
     try {
@@ -84,6 +92,14 @@ export function DashboardWidget() {
           >
             <Plus className="h-4 w-4" />
             Import Track
+          </button>
+
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-zinc-500 transition-all hover:border-white/[0.12] hover:text-zinc-300 active:scale-[0.98]"
+          >
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
       </div>
