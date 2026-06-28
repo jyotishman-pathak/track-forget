@@ -17,6 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'TrackForge — Learning Tracker',
   description: 'A premium, high-performance learning tracker. Bloomberg terminal for your gauntlet.',
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
