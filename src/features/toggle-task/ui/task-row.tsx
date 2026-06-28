@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Flame, Clock } from 'lucide-react';
+import { ExternalLink, Flame, Clock, FileText } from 'lucide-react';
 import { TaskCheckbox } from './task-checkbox';
 import { toggleTask } from '@/src/entities/task';
 import { useTrackStore } from '../store';
 import { updatePhaseStatus } from '@/src/entities/phase';
 import type { Task } from '@/src/shared/types';
 import { cn } from '@/src/shared/lib/utils';
+import { TaskDetailDrawer } from './task-detail-drawer';
 
 interface TaskRowProps {
   task: Task;
@@ -24,6 +25,7 @@ const difficultyStyles: Record<string, string> = {
 
 export function TaskRow({ task, accentColor, phaseId }: TaskRowProps) {
   const [isToggling, setIsToggling] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const updateTaskInState = useTrackStore((s) => s.updateTaskInState);
   const updatePhaseInState = useTrackStore((s) => s.updatePhaseInState);
   const phases = useTrackStore((s) => s.phases);
@@ -71,78 +73,105 @@ export function TaskRow({ task, accentColor, phaseId }: TaskRowProps) {
   }
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className={cn(
-        'group flex items-start gap-3 rounded-lg border border-transparent px-3 py-2.5',
-        'transition-colors duration-200 hover:border-white/[0.06] hover:bg-white/[0.02]',
-      )}
-    >
-      <div className="mt-0.5">
-        <TaskCheckbox
-          checked={task.completed}
-          accentColor={accentColor}
-          onToggle={handleToggle}
-          disabled={isToggling}
-        />
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-start gap-2">
-          <motion.p
-            animate={{
-              opacity: task.completed ? 0.5 : 1,
-            }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              'text-sm leading-relaxed text-zinc-200',
-              task.completed && 'text-zinc-500 line-through',
-            )}
-          >
-            {task.description}
-          </motion.p>
+    <>
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className={cn(
+          'group flex items-start gap-3 rounded-lg border border-transparent px-3 py-2.5',
+          'transition-colors duration-200 hover:border-white/[0.06] hover:bg-white/[0.02]',
+          'cursor-default',
+        )}
+      >
+        <div className="mt-0.5">
+          <TaskCheckbox
+            checked={task.completed}
+            accentColor={accentColor}
+            onToggle={handleToggle}
+            disabled={isToggling}
+          />
         </div>
 
-        <div className="flex items-center gap-3">
-          {task.difficulty && (
-            <span
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex items-start gap-2">
+            <motion.p
+              animate={{
+                opacity: task.completed ? 0.5 : 1,
+              }}
+              transition={{ duration: 0.2 }}
               className={cn(
-                'rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider',
-                difficultyStyles[task.difficulty] ?? 'text-zinc-500 border-zinc-700',
+                'flex-1 text-sm leading-relaxed text-zinc-200',
+                task.completed && 'text-zinc-500 line-through',
               )}
             >
-              {task.difficulty}
-            </span>
-          )}
-          {task.cold_redo && (
-            <span className="flex items-center gap-1 text-[10px] font-medium text-amber-400/60">
-              <Flame className="h-3 w-3" />
-              <span className="uppercase tracking-wider">Cold Redo</span>
-            </span>
-          )}
-          {task.time_spent_sec > 0 && (
-            <span className="flex items-center gap-1 font-mono text-[10px] text-zinc-600">
-              <Clock className="h-3 w-3" />
-              {Math.round(task.time_spent_sec / 60)}m
-            </span>
-          )}
-          {task.resource_url && (
-            <a
-              href={task.resource_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1 text-[10px] text-zinc-600 transition-colors hover:text-zinc-400"
+              {task.description}
+            </motion.p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {task.difficulty && (
+              <span
+                className={cn(
+                  'rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider',
+                  difficultyStyles[task.difficulty] ?? 'text-zinc-500 border-zinc-700',
+                )}
+              >
+                {task.difficulty}
+              </span>
+            )}
+            {task.cold_redo && (
+              <span className="flex items-center gap-1 text-[10px] font-medium text-amber-400/60">
+                <Flame className="h-3 w-3" />
+                <span className="uppercase tracking-wider">Cold Redo</span>
+              </span>
+            )}
+            {task.time_spent_sec > 0 && (
+              <span className="flex items-center gap-1 font-mono text-[10px] text-zinc-600">
+                <Clock className="h-3 w-3" />
+                {Math.round(task.time_spent_sec / 60)}m
+              </span>
+            )}
+            {task.resource_url && (
+              <a
+                href={task.resource_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1 text-[10px] text-zinc-600 transition-colors hover:text-zinc-400"
+              >
+                <ExternalLink className="h-3 w-3" />
+                <span>resource</span>
+              </a>
+            )}
+
+            {/* Notes button — always visible but highlighted when notes exist */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setDrawerOpen(true);
+              }}
+              className={cn(
+                'flex items-center gap-1 text-[10px] transition-colors',
+                task.notes
+                  ? 'text-zinc-400 hover:text-zinc-200'
+                  : 'text-zinc-700 opacity-0 group-hover:opacity-100 hover:text-zinc-500',
+              )}
+              title={task.notes ? 'View notes' : 'Add notes'}
             >
-              <ExternalLink className="h-3 w-3" />
-              <span>resource</span>
-            </a>
-          )}
+              <FileText className="h-3 w-3" />
+              <span>{task.notes ? 'notes' : 'add notes'}</span>
+            </button>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+
+      <TaskDetailDrawer
+        task={drawerOpen ? task : null}
+        accentColor={accentColor}
+        onClose={() => setDrawerOpen(false)}
+      />
+    </>
   );
 }

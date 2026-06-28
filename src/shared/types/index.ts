@@ -40,6 +40,7 @@ export interface Task {
   id: string;
   phase_id: string;
   description: string;
+  notes: string | null;
   completed: boolean;
   resource_url: string | null;
   difficulty: TaskDifficulty | null;

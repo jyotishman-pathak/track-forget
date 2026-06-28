@@ -1,1 +1,1 @@
-export {toggleTask, createTask, deleteTask, updateTaskTime} from "./api/task-api"
+export {toggleTask, createTask, deleteTask, updateTaskTime, updateTaskNotes} from "./api/task-api"

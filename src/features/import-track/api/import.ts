@@ -1,5 +1,5 @@
 import { supabase } from '@/src/shared/api/client';
-import { parseTrackMarkdown, type ParsedPhase } from '../lib/parse-markdown';
+import { parseTrackMarkdown } from '../lib/parse-markdown';
 import type { Track } from '@/src/shared/types';
 
 export async function importTrackFromMarkdown(input: {
@@ -29,13 +29,20 @@ export async function importTrackFromMarkdown(input: {
 
   // Create phases + tasks
   for (const phase of phases) {
+    // Use the rich notes content as description if no short description, otherwise append
+    const description = phase.notes
+      ? phase.description
+        ? `${phase.description}\n\n${phase.notes}`
+        : phase.notes
+      : (phase.description ?? null);
+
     const { data: phaseRow, error: phaseErr } = await supabase
       .from('phases')
       .insert({
         track_id: track.id,
         number: phase.number,
         title: phase.title,
-        description: phase.description ?? null,
+        description,
         total_tasks: phase.tasks.length,
         completed_tasks: 0,
       })
@@ -49,6 +56,7 @@ export async function importTrackFromMarkdown(input: {
         description: t.description,
         difficulty: t.difficulty ?? null,
         resource_url: t.resourceUrl ?? null,
+        notes: null, // individual task notes start empty — users fill them in
       }));
       const { error: tasksErr } = await supabase.from('tasks').insert(taskRows);
       if (tasksErr) throw tasksErr;

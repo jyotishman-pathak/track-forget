@@ -18,6 +18,7 @@ export async function toggleTask(taskId: string, completed: boolean): Promise<Ta
 export async function createTask(input: {
   phase_id: string;
   description: string;
+  notes?: string | null;
   difficulty?: string | null;
   resource_url?: string | null;
 }): Promise<Task> {
@@ -26,9 +27,21 @@ export async function createTask(input: {
     .insert({
       phase_id: input.phase_id,
       description: input.description,
+      notes: input.notes ?? null,
       difficulty: input.difficulty ?? null,
       resource_url: input.resource_url ?? null,
     })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Task;
+}
+
+export async function updateTaskNotes(taskId: string, notes: string | null): Promise<Task> {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ notes })
+    .eq('id', taskId)
     .select()
     .single();
   if (error) throw error;
