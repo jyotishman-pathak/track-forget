@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react'; // 1. Import Suspense
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, ArrowRight, BookOpen, Eye, EyeOff } from 'lucide-react';
 
-export function LoginPage() {
+// 2. Rename your original component to LoginForm (Inner Component)
+function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -13,7 +14,7 @@ export function LoginPage() {
   const [shake, setShake] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // Safe to use here
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -152,5 +153,21 @@ export function LoginPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+// 3. Export a wrapper component that handles the Suspense boundary
+export function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        // This UI shows during the static build and initial client hydration
+        <div className="flex min-h-screen flex-col items-center justify-center px-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-400 border-t-transparent"></div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
