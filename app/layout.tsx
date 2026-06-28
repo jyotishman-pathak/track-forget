@@ -15,11 +15,17 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'TrackForge — Learning Tracker',
-  description: 'A premium, high-performance learning tracker. Bloomberg terminal for your gauntlet.',
+  title: "TrackForge — Learning Tracker",
+  description:
+    "A premium, high-performance learning tracker. Bloomberg terminal for your gauntlet.",
   manifest: "/manifest.webmanifest",
-};
 
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
+  },
+};
 export default function RootLayout({
   children,
 }: {
